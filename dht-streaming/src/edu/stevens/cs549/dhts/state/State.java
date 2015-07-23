@@ -89,6 +89,7 @@ public class State implements IState, IRouting {
 		{
 			broadcastAddition(k,v);
 		}
+		//DONE
 	}
 
 	public synchronized void delete(String k, String v) {
@@ -295,14 +296,51 @@ public class State implements IState, IRouting {
 	@Override
 	public void addListener(int id, String key, EventOutput os) {
 		// TODO Auto-generated method stub
+		if(!listeners.containsKey(key))
+		{
+			listeners.put(key, new SseBroadcaster());
+		}
+		
+		if(!outputs.containsKey(id))
+		{
+			outputs.put(id, new HashMap<String, EventOutput>());
+		}
+		
+		listeners.get(key).add(os); // Register OS
+		outputs.get(id).put(key, os); //Prepare for sending message
+		//Done
 	}
 	
 	public void removeListener(int id, String key) {
 		// TODO Close the event output stream.
+		if(outputs.containsKey(id))
+		{
+			EventOutput oput = outputs.get(id).remove(key);
+			if(oput != null)
+			{
+				try {
+					oput.close();
+				} catch (IOException e) {
+					System.out.println("State.java: Line 321 error");
+				}
+			}
+		}
+		else
+		{
+			//if 
+			SseBroadcaster bdcast = listeners.remove(key);
+			if(bdcast != null) // Check if there is residue EventOutput in the broadcaster 
+			{
+				bdcast.closeAll();
+			}
+		}
+		//Done
 	}
 	
 	private void broadcastAddition(String key, String value) {
 		// TODO broadcast an added binding (use IDHTNode.NEW_BINDING_EVENT for event name).
+		/*the real meat of this assignment*/
+		
 	}
 	
 	/*
@@ -319,10 +357,10 @@ public class State implements IState, IRouting {
 	public void removeCallback(String key) {
 		// TODO remove an existing callback (if any) for bindings on key.
 		// Be sure to close the event stream from the broadcaster.
-		if(callbacks.containsKey(key))
+		EventSource es = callbacks.remove(key);
+		if(es != null)
 		{
-			callbacks.get(key).close();
-			callbacks.remove(key);
+			es.close();
 		}
 		//Done
 	}
