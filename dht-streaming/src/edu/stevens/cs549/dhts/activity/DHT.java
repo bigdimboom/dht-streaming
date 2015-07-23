@@ -7,6 +7,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.glassfish.jersey.media.sse.EventListener;
 import org.glassfish.jersey.media.sse.EventOutput;
+import org.glassfish.jersey.media.sse.EventSource;
 
 import edu.stevens.cs549.dhts.main.Main;
 import edu.stevens.cs549.dhts.main.WebClient;
@@ -649,20 +650,24 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 	public EventOutput listenForBindings(int id, String key) {
 		// TODO create event output stream and add to broadcaster
 		EventOutput os = new EventOutput();
-		debug("listforBindings("+key+")");
-		state.addListener(id, key, os);
+		debug("listforBindings("+key+") form" + id);
+		state.addListener(id, key, os); // Save the state of ending out
 		return os;
+		//Done
 	}
 	
 	// Webmethod
 	public void stopListening(int id, String key) {
 		// TODO remove event output stream from broadcaster
+		debug("stopBrocasting("+key+") to " + id);
+		state.removeListener(id, key); // Stop sending out and delete the state
+		//Done
 	}
 		
 	/*
 	 * Client-side callbacks
 	 */
-	public void listenOn(String key, EventListener listener) throws DHTBase.Failed {
+	public void listenOn(String skey, EventListener listener) throws DHTBase.Failed {
 		/*
 		 * TODO: Register a listener for new bindings under key, at the node
 		 * where those bindings are stored.  The event source should
@@ -672,16 +677,36 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 		 * and key).  The client should send its own node id to identify itself
 		 * (for both the listen on and listen off requests).
 		 */
-
+		
+		/*
+		 * 1. Find that node contains skey (the node is broadcaster)
+		 * 2. Establish SSE connection (steps are from the manual)
+		 * 3. Listen for changes
+		 * 4. It is like the remote version of the observer pattern
+		 */
+		int targetId = NodeKey(skey);
+		NodeInfo localNode = getNodeInfo();
+		NodeInfo targetNode = findPredecessor(targetId);
+		EventSource eventSource = client.listenForBindings(targetNode, localNode.id, skey);
+		state.addCallback(skey, eventSource);
+		eventSource.close();
 	}
 	
-	public void listenOff(String key) throws DHTBase.Failed {
+	public void listenOff(String skey) throws DHTBase.Failed {
 		/*
 		 * TODO: Stop listening for new binding events for this key.  Need to
 		 * do a Web service call to the server node, to stop event generation,
 		 * as well as close the event source here at the client.
 		 */
-
+		
+		// 1. delete the listening state from local state
+		// 2. inform server to stop generate events
+		int targetId = NodeKey(skey);
+		NodeInfo targetNode = findPredecessor(targetId);
+		NodeInfo localNode = getNodeInfo();
+		client.listenOff(targetNode, localNode.id, skey); // I don't need you any more
+		state.removeCallback(skey);
+		//Done
 	}
 	
 	public void listeners() {

@@ -288,6 +288,11 @@ public class State implements IState, IRouting {
 	
 	private Map<Integer,Map<String,EventOutput>> outputs = new HashMap<Integer,Map<String,EventOutput>>();
 	
+	@Override
+	public void addListener(int id, String key, EventOutput os) {
+		// TODO Auto-generated method stub
+	}
+	
 	public void removeListener(int id, String key) {
 		// TODO Close the event output stream.
 	}
@@ -310,6 +315,12 @@ public class State implements IState, IRouting {
 	public void removeCallback(String key) {
 		// TODO remove an existing callback (if any) for bindings on key.
 		// Be sure to close the event stream from the broadcaster.
+		if(callbacks.containsKey(key))
+		{
+			callbacks.get(key).close();
+			callbacks.remove(key);
+		}
+		//Done
 	}
 	
 	public void listCallbacks() {
@@ -330,9 +341,4 @@ public class State implements IState, IRouting {
 		wr.flush();
 	}
 
-	@Override
-	public void addListener(int id, String key, EventOutput os) {
-		// TODO Auto-generated method stub
-		
-	}
 }
