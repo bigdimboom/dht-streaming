@@ -266,16 +266,43 @@ public class WebClient {
 	}
 
 	
+	private Response getRequestForListeners(URI uri) 
+	{
+		//TODO:
+		return listenClient.target(uri).request(MediaType.TEXT_PLAIN_TYPE).get();
+		//DONE
+	}
+	
+	private void deleteRequestForListeners(URI uri)
+	{
+		//TODO:
+		listenClient.target(uri).request(MediaType.TEXT_PLAIN_TYPE).delete();
+		//DONE
+	}
+	
 	public EventSource listenForBindings(NodeInfo node, int id, String skey) throws DHTBase.Failed {
 		// TODO listen for SSE subscription requests on http://.../dht/listen?key=<key>
 		// On the service side, don't expect LT request or response headers for this request.
 		// Note: "id" is client's id, to enable us to stop event generation at the server.
-		return null;
+		UriBuilder ub = UriBuilder.fromUri(node.addr).path("listen");
+		URI path = ub.queryParam("id", id).queryParam("key", skey).build();
+		Response response = getRequestForListeners(path);
+		if (response == null || response.getStatus() >= 300) {
+			throw new DHTBase.Failed("GET /listen?id=ID&key=KEY");
+		}
+		WebTarget webTarget = listenClient.target(path);
+		EventSource eventSource = new EventSource(webTarget);	
+		return eventSource;
+		//Done
 	}
 
 	public void listenOff(NodeInfo node, int id, String skey) throws DHTBase.Failed {
 		// TODO listen for SSE subscription requests on http://.../dht/listen?key=<key>
 		// On the service side, don't expect LT request or response headers for this request.
+		UriBuilder ub = UriBuilder.fromUri(node.addr).path("listen");
+		URI path = ub.queryParam("id", id).queryParam("key", skey).build();
+		deleteRequestForListeners(path);
+		//DONE
 	}
 
 }

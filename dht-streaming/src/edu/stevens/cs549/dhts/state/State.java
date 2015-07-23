@@ -85,6 +85,10 @@ public class State implements IState, IRouting {
 		}
 		vl.add(v);
 		// TODO: broadcast an event to any listeners
+		if(listeners.containsKey(k))
+		{
+			broadcastAddition(k,v);
+		}
 	}
 
 	public synchronized void delete(String k, String v) {

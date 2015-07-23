@@ -688,8 +688,8 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 		NodeInfo localNode = getNodeInfo();
 		NodeInfo targetNode = findPredecessor(targetId);
 		EventSource eventSource = client.listenForBindings(targetNode, localNode.id, skey);
+		eventSource.register(listener);
 		state.addCallback(skey, eventSource);
-		eventSource.close();
 	}
 	
 	public void listenOff(String skey) throws DHTBase.Failed {

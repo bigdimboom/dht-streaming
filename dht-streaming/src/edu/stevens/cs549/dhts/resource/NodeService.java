@@ -188,9 +188,18 @@ public class NodeService {
 		return response();
 	}
 
+	public Response listenForBinding(int id, String key)
+	{
+		//TODO
+		EventOutput eventOutput = dht.listenForBindings(id, key);
+		return response(eventOutput);
+		//DONE
+	}
+	
 	public void stopListening(int id, String key) {
 		// TODO Auto-generated method stub
-		
+		dht.stopListening(id, key);
+		//DONE
 	}
 	
 }
