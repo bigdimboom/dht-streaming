@@ -322,6 +322,7 @@ public class CliClient {
 			if (inputs.length == 2)
 				try {
 					node.join(inputs[1]);
+					node.join(inputs[1]);
 				} catch (Exception e) {
 					err(e);
 				}

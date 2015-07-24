@@ -33,7 +33,7 @@ public class State implements IState, IRouting {
 	static final long serialVersionUID = 0L;
 
 	public static Logger log = Logger.getLogger(State.class.getCanonicalName());
-	
+
 	protected NodeInfo info;
 
 	public State(NodeInfo info) {
@@ -85,11 +85,10 @@ public class State implements IState, IRouting {
 		}
 		vl.add(v);
 		// TODO: broadcast an event to any listeners
-		if(listeners.containsKey(k))
-		{
-			broadcastAddition(k,v);
+		if (listeners.containsKey(k)) {
+			broadcastAddition(k, v);
 		}
-		//DONE
+		// DONE
 	}
 
 	public synchronized void delete(String k, String v) {
@@ -199,20 +198,20 @@ public class State implements IState, IRouting {
 		 */
 		for (int i = IRouting.NFINGERS; i > 0; i--) {
 			int UB = finger[i].id % IRouting.NKEYS;
-			int LB = finger[i-1].id % IRouting.NKEYS;
+			int LB = finger[i - 1].id % IRouting.NKEYS;
 			if (id == UB)
-				return getFinger(i-1);
+				return getFinger(i - 1);
 			if (LB < UB) {
 				UB = (UB - LB);
 				LB = (id - LB);
 				if (0 <= LB && LB < UB) { // TODO, or (0 <= LB && LB < UB)
-					return getFinger(i-1);
+					return getFinger(i - 1);
 				}
 			} else if (UB < LB) {
 				UB = (UB + (IRouting.NKEYS - LB)) % IRouting.NKEYS;
 				LB = (id + (IRouting.NKEYS - LB)) % IRouting.NKEYS;
 				if (0 <= LB && LB < UB) { // TODO, or (0 <= LB && LB < UB)
-					return getFinger(i-1);
+					return getFinger(i - 1);
 				}
 			}
 		}
@@ -232,24 +231,21 @@ public class State implements IState, IRouting {
 		}
 		wr.flush();
 	}
-	
-	
+
 	/*
 	 * Used to prevent a race condition in the join protocol.
 	 */
-	
+
 	public static enum JoinState {
-		NOT_JOINED,
-		JOINING,
-		JOINED
+		NOT_JOINED, JOINING, JOINED
 	}
-	
+
 	private JoinState joinState = JoinState.NOT_JOINED;
-	
+
 	private Lock joinStateLock = new ReentrantLock();
-	
+
 	private Condition joined = joinStateLock.newCondition();
-	
+
 	public void startJoin() {
 		joinStateLock.lock();
 		try {
@@ -258,10 +254,10 @@ public class State implements IState, IRouting {
 			joinStateLock.unlock();
 		}
 	}
-	
+
 	public void joinCheck() {
 		// Called by any operations that should block during join protocol.
-		// Currently that is getPred() (for the case where we are joining a 
+		// Currently that is getPred() (for the case where we are joining a
 		// single-node network).
 		joinStateLock.lock();
 		try {
@@ -274,7 +270,7 @@ public class State implements IState, IRouting {
 			joinStateLock.unlock();
 		}
 	}
-	
+
 	public void finishJoin() {
 		joinStateLock.lock();
 		try {
@@ -284,87 +280,93 @@ public class State implements IState, IRouting {
 			joinStateLock.unlock();
 		}
 	}
-	
+
 	/*
 	 * Server-side listeners for new bindings.
 	 */
-	
-	private Map<String,SseBroadcaster> listeners = new HashMap<String,SseBroadcaster>();
-	
-	private Map<Integer,Map<String,EventOutput>> outputs = new HashMap<Integer,Map<String,EventOutput>>();
-	
+
+	private Map<String, SseBroadcaster> listeners = new HashMap<String, SseBroadcaster>();
+
+	private Map<Integer, Map<String, EventOutput>> outputs = new HashMap<Integer, Map<String, EventOutput>>();
+
 	@Override
 	public void addListener(int id, String key, EventOutput os) {
 		// TODO Auto-generated method stub
-		if(!listeners.containsKey(key))
-		{
+		if (!listeners.containsKey(key)) {
 			listeners.put(key, new SseBroadcaster());
 		}
-		
-		if(!outputs.containsKey(id))
-		{
+
+		if (!outputs.containsKey(id)) {
 			outputs.put(id, new HashMap<String, EventOutput>());
 		}
-		
+
 		listeners.get(key).add(os); // Register OS
-		outputs.get(id).put(key, os); //Prepare for sending message
-		//Done
+		outputs.get(id).put(key, os); // Prepare for sending message
+		// Done
 	}
-	
+
 	public void removeListener(int id, String key) {
 		// TODO Close the event output stream.
-		if(outputs.containsKey(id))
-		{
+		if (outputs.containsKey(id)) {
 			EventOutput oput = outputs.get(id).remove(key);
-			if(oput != null)
-			{
+			if (oput != null) {
 				try {
 					oput.close();
 				} catch (IOException e) {
 					System.out.println("State.java: Line 321 error");
 				}
 			}
-		}
-		else
-		{
-			//if 
+		} else {
+			// if
 			SseBroadcaster bdcast = listeners.remove(key);
-			if(bdcast != null) // Check if there is residue EventOutput in the broadcaster 
+			if (bdcast != null) // Check if there is residue EventOutput in the
+								// broadcaster
 			{
 				bdcast.closeAll();
 			}
 		}
-		//Done
+		// Done
 	}
-	
+
 	private void broadcastAddition(String key, String value) {
-		// TODO broadcast an added binding (use IDHTNode.NEW_BINDING_EVENT for event name).
-		/*the real meat of this assignment*/
+		// TODO broadcast an added binding (use IDHTNode.NEW_BINDING_EVENT for
+		// event name).
+		/* the real meat of this assignment */
+		OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
+		OutboundEvent event = eventBuilder.name(IDHTNode.NEW_BINDING_EVENT)
+				.mediaType(MediaType.TEXT_PLAIN_TYPE)
+				.data(String.class, value).build();
 		
+		System.out.println(key + " " + value);
+		
+		if(listeners.containsKey(key))
+		{
+			System.out.println("true");
+			listeners.get(key).broadcast(event);
+		}
 	}
-	
+
 	/*
 	 * Client-side callbacks for new binding notifications.
 	 */
-	
-	private Map<String,EventSource> callbacks = new HashMap<String,EventSource>();
-	
+
+	private Map<String, EventSource> callbacks = new HashMap<String, EventSource>();
+
 	public void addCallback(String key, EventSource is) {
 		removeCallback(key);
 		callbacks.put(key, is);
 	}
-	
+
 	public void removeCallback(String key) {
 		// TODO remove an existing callback (if any) for bindings on key.
 		// Be sure to close the event stream from the broadcaster.
 		EventSource es = callbacks.remove(key);
-		if(es != null)
-		{
+		if (es != null) {
 			es.close();
 		}
-		//Done
+		// Done
 	}
-	
+
 	public void listCallbacks() {
 		PrintWriter wr = new PrintWriter(System.out);
 		if (callbacks.isEmpty()) {

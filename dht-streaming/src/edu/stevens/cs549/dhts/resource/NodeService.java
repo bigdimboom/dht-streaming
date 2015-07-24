@@ -169,7 +169,7 @@ public class NodeService {
 	public Response add(String k, String v) {
 		try {
 			advanceTime();
-			info("adding, key: " + k + "value: " + v);
+			System.out.println("adding, key: " + k + "value: " + v);
 			dht.add(k, v);
 		} catch (Invalid e) {
 			throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
@@ -191,6 +191,7 @@ public class NodeService {
 	public Response listenForBinding(int id, String key)
 	{
 		//TODO
+		info("Hello");
 		EventOutput eventOutput = dht.listenForBindings(id, key);
 		return response(eventOutput);
 		//DONE

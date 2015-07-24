@@ -566,6 +566,7 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 			NodeInfo succ = this.findSuccessor(id);
 			add(succ, skey, v);
 		}
+		stabilize();
 	}
 
 	/*
@@ -650,7 +651,7 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 	public EventOutput listenForBindings(int id, String key) {
 		// TODO create event output stream and add to broadcaster
 		EventOutput os = new EventOutput();
-		debug("listforBindings("+key+") form" + id);
+		info("listforBindings("+key+") form" + id);
 		state.addListener(id, key, os); // Save the state of ending out
 		return os;
 		//Done
@@ -685,11 +686,13 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 		 * 4. It is like the remote version of the observer pattern
 		 */
 		int targetId = NodeKey(skey);
-		NodeInfo localNode = getNodeInfo();
-		NodeInfo targetNode = findPredecessor(targetId);
+		NodeInfo localNode = getNodeInfo();	
+		NodeInfo targetNode = findSuccessor(targetId);
+		//info("targetNodexxx id is " + targetNode.id);
 		EventSource eventSource = client.listenForBindings(targetNode, localNode.id, skey);
 		eventSource.register(listener);
 		state.addCallback(skey, eventSource);
+		eventSource.close();
 	}
 	
 	public void listenOff(String skey) throws DHTBase.Failed {
@@ -702,7 +705,7 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 		// 1. delete the listening state from local state
 		// 2. inform server to stop generate events
 		int targetId = NodeKey(skey);
-		NodeInfo targetNode = findPredecessor(targetId);
+		NodeInfo targetNode = findSuccessor(targetId);
 		NodeInfo localNode = getNodeInfo();
 		client.listenOff(targetNode, localNode.id, skey); // I don't need you any more
 		state.removeCallback(skey);
