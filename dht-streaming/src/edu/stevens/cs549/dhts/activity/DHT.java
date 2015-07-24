@@ -694,7 +694,10 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 //			System.out.println("Not NULL");
 		eventSource.register(listener, IDHTNode.NEW_BINDING_EVENT);
 		state.addCallback(skey, eventSource);
-		
+		if(!eventSource.isOpen())
+		{
+			eventSource.open();
+		}
 	}
 	
 	public void listenOff(String skey) throws DHTBase.Failed {

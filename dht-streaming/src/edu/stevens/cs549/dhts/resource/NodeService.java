@@ -169,7 +169,7 @@ public class NodeService {
 	public Response add(String k, String v) {
 		try {
 			advanceTime();
-			System.out.println("adding, key: " + k + "value: " + v);
+			System.out.println("\n adding key: " + k + "value: " + v);
 			dht.add(k, v);
 		} catch (Invalid e) {
 			throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
@@ -198,6 +198,7 @@ public class NodeService {
 	
 	public void stopListening(int id, String key) {
 		// TODO Auto-generated method stub
+		System.out.print("Removing Listening");
 		dht.stopListening(id, key);
 		//DONE
 	}

@@ -40,12 +40,12 @@ public class WebClient {
 	 * Creation of client instances is expensive, so just create one.
 	 */
 	protected Client client;
-	
+
 	protected Client listenClient;
 
 	public WebClient() {
 		client = ClientBuilder.newClient();
-		listenClient = ClientBuilder.newBuilder().register(SseFeature.class).build();	
+		listenClient = ClientBuilder.newBuilder().register(SseFeature.class).build();
 	}
 
 	private void info(String mesg) {
@@ -54,10 +54,8 @@ public class WebClient {
 
 	private Response getRequest(URI uri) {
 		try {
-			Response cr = client.target(uri)
-					.request(MediaType.APPLICATION_XML_TYPE)
-					.header(Time.TIME_STAMP, Time.advanceTime())
-					.get();
+			Response cr = client.target(uri).request(MediaType.APPLICATION_XML_TYPE)
+					.header(Time.TIME_STAMP, Time.advanceTime()).get();
 			processResponseTimestamp(cr);
 			return cr;
 		} catch (Exception e) {
@@ -68,35 +66,28 @@ public class WebClient {
 
 	private Response putRequest(URI uri, Entity<?> entity) {
 		try {
-			Response cr = client.target(uri)
-					.request()
-					.header(Time.TIME_STAMP, Time.advanceTime())
-					.put(entity);
+			Response cr = client.target(uri).request().header(Time.TIME_STAMP, Time.advanceTime()).put(entity);
 			processResponseTimestamp(cr);
 			return cr;
 		} catch (Exception e) {
 			error("Exception during PUT request: " + e);
 			return null;
 		}
-		//Done
+		// Done
 	}
-	
+
 	private Response deleteRequest(URI uri) {
 		try {
-			Response cr = client.target(uri)
-					.request()
-					.header(Time.TIME_STAMP, Time.advanceTime())
-					.delete();
+			Response cr = client.target(uri).request().header(Time.TIME_STAMP, Time.advanceTime()).delete();
 			processResponseTimestamp(cr);
 			return cr;
 		} catch (Exception e) {
 			error("Exception during DELETE request: " + e);
 			return null;
 		}
-		//Done
+		// Done
 	}
-	
-	
+
 	@SuppressWarnings("unused")
 	private Response putRequest(URI uri) {
 		return putRequest(uri, Entity.text(""));
@@ -112,8 +103,8 @@ public class WebClient {
 	 */
 	private GenericType<JAXBElement<NodeInfo>> nodeInfoType = new GenericType<JAXBElement<NodeInfo>>() {
 	};
-	
-	//Done
+
+	// Done
 	private GenericType<JAXBElement<TableRow>> tableRowType = new GenericType<JAXBElement<TableRow>>() {
 	};
 
@@ -155,7 +146,7 @@ public class WebClient {
 			return succ;
 		}
 	}
-	
+
 	/*
 	 * Get the successor pointer of an id //Done
 	 */
@@ -164,14 +155,14 @@ public class WebClient {
 		URI findSuccPath = ub.queryParam("id", id).build();
 		info("client findSucc(" + findSuccPath + ")");
 		Response response = getRequest(findSuccPath);
-		
+
 		if (response == null || response.getStatus() >= 300) {
 			throw new DHTBase.Failed("GET /find?id=ID");
 		} else {
 			return (NodeInfo) response.readEntity(nodeInfoType).getValue();
 		}
 	}
-	
+
 	/*
 	 * Get the closestPrecedingFinger pointer of an id //Done
 	 */
@@ -186,8 +177,8 @@ public class WebClient {
 			return (NodeInfo) response.readEntity(nodeInfoType).getValue();
 		}
 	}
-	
-	//client Restful get query :a value array 
+
+	// client Restful get query :a value array
 	public String[] get(URI addr, String k) throws Failed {
 		UriBuilder ub = UriBuilder.fromUri(addr);
 		URI getPath = ub.queryParam("key", k).build();
@@ -199,18 +190,17 @@ public class WebClient {
 		} else {
 			tableRow = response.readEntity(tableRowType).getValue();
 		}
-		
-		if(tableRow == null)
-		{
-			String[] ret = {"NULL"};
+
+		if (tableRow == null) {
+			String[] ret = { "NULL" };
 			return ret;
 		}
-		
+
 		return tableRow.vals;
-		//Done
+		// Done
 	}
 
-	//client Restful add key/val query
+	// client Restful add key/val query
 	public void add(URI addr, String k, String v) throws Failed {
 		UriBuilder ub = UriBuilder.fromUri(addr);
 		URI putKeyPath = ub.queryParam("key", k).queryParam("val", v).build();
@@ -219,10 +209,10 @@ public class WebClient {
 		if (response == null || response.getStatus() >= 300) {
 			throw new DHTBase.Failed("PUT ?key=KEY&val=VAL");
 		}
-		//Done
+		// Done
 	}
 
-	//client Restful delete queryinfo("I get the values: " + values);
+	// client Restful delete queryinfo("I get the values: " + values);
 	public void delete(URI addr, String k, String v) throws Failed {
 		UriBuilder ub = UriBuilder.fromUri(addr);
 		URI deleteKeyPath = ub.queryParam("key", k).queryParam("val", v).build();
@@ -231,9 +221,9 @@ public class WebClient {
 		if (response == null || response.getStatus() >= 300) {
 			throw new DHTBase.Failed("DELETE ?key=KEY&val=VAL");
 		}
-		//Done
+		// Done
 	}
-	
+
 	/*
 	 * Notify node that we (think we) are its predecessor.
 	 */
@@ -264,30 +254,40 @@ public class WebClient {
 			return bindings;
 		}
 	}
-	
+
 	public EventSource listenForBindings(NodeInfo node, int id, String skey) throws DHTBase.Failed {
-		// TODO listen for SSE subscription requests on http://.../dht/listen?key=<key>
-		// On the service side, don't expect LT request or response headers for this request.
-		// Note: "id" is client's id, to enable us to stop event generation at the server.
+		// TODO listen for SSE subscription requests on
+		// http://.../dht/listen?key=<key>
+		// On the service side, don't expect LT request or response headers for
+		// this request.
+		// Note: "id" is client's id, to enable us to stop event generation at
+		// the server.
 		UriBuilder ub = UriBuilder.fromUri(node.addr).path("listen");
 		URI path = ub.queryParam("id", id).queryParam("key", skey).build();
-//		Response response = getRequestForListeners(path);
-//		if (response == null || response.getStatus() >= 300) {
-//			throw new DHTBase.Failed("GET /listen?id=ID&key=KEY");
-//		}
+		// Response response = getRequestForListeners(path);
+		// if (response == null || response.getStatus() >= 300) {
+		// throw new DHTBase.Failed("GET /listen?id=ID&key=KEY");
+		// }
 		WebTarget webTarget = listenClient.target(path);
 		EventSource eventSource = new EventSource(webTarget);
 		return eventSource;
-		//Done
+		// Done
 	}
 
 	public void listenOff(NodeInfo node, int id, String skey) throws DHTBase.Failed {
-		// TODO listen for SSE subscription requests on http://.../dht/listen?key=<key>
-		// On the service side, don't expect LT request or response headers for this request.
+		// TODO listen for SSE subscription requests on
+		// http://.../dht/listen?key=<key>
+		// On the service side, don't expect LT request or response headers for
+		// this request.
 		UriBuilder ub = UriBuilder.fromUri(node.addr).path("listen");
 		URI path = ub.queryParam("id", id).queryParam("key", skey).build();
-		//deleteRequestForListeners(path);
-		//DONE
+		deleteRequestForListeners(path);
+		// DONE
+	}
+
+	private void deleteRequestForListeners(URI path) {
+		WebTarget webTarget = listenClient.target(path);
+		webTarget.request().buildDelete().invoke();
 	}
 
 }
