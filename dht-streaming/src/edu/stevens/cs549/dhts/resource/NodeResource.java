@@ -108,12 +108,11 @@ public class NodeResource {
 	public Response delete(@QueryParam("key") String k, @QueryParam("val") String v) {
 		return new NodeService(headers, uriInfo).delete(k, v);
 	}
-
+	
 	@GET
 	@Path("listen")
 	@Produces(SseFeature.SERVER_SENT_EVENTS)
 	public Response listenForBindings(@QueryParam("id") int id, @QueryParam("key") String key) {
-		//System.out.println("Say Something");
 		return new NodeService(headers, uriInfo).listenForBinding(id, key);
 	}
 	

@@ -191,7 +191,6 @@ public class NodeService {
 	public Response listenForBinding(int id, String key)
 	{
 		//TODO
-		info("Hello");
 		EventOutput eventOutput = dht.listenForBindings(id, key);
 		return response(eventOutput);
 		//DONE

@@ -651,7 +651,7 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 	public EventOutput listenForBindings(int id, String key) {
 		// TODO create event output stream and add to broadcaster
 		EventOutput os = new EventOutput();
-		info("listforBindings("+key+") form" + id);
+		debug("listforBindings("+key+") form" + id);
 		state.addListener(id, key, os); // Save the state of ending out
 		return os;
 		//Done
@@ -690,9 +690,11 @@ public class DHT extends DHTBase implements IDHTResource, IDHTNode, IDHTBackgrou
 		NodeInfo targetNode = findSuccessor(targetId);
 		//info("targetNodexxx id is " + targetNode.id);
 		EventSource eventSource = client.listenForBindings(targetNode, localNode.id, skey);
-		eventSource.register(listener);
+//		if(eventSource != null)
+//			System.out.println("Not NULL");
+		eventSource.register(listener, IDHTNode.NEW_BINDING_EVENT);
 		state.addCallback(skey, eventSource);
-		eventSource.close();
+		
 	}
 	
 	public void listenOff(String skey) throws DHTBase.Failed {

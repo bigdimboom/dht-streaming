@@ -337,11 +337,11 @@ public class State implements IState, IRouting {
 				.mediaType(MediaType.TEXT_PLAIN_TYPE)
 				.data(String.class, value).build();
 		
-		System.out.println(key + " " + value);
+		//System.out.println("\n" + key + " " + value);
 		
 		if(listeners.containsKey(key))
 		{
-			System.out.println("true");
+			//System.out.println("\ntrue");
 			listeners.get(key).broadcast(event);
 		}
 	}

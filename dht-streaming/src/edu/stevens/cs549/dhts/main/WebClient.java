@@ -276,7 +276,7 @@ public class WebClient {
 //			throw new DHTBase.Failed("GET /listen?id=ID&key=KEY");
 //		}
 		WebTarget webTarget = listenClient.target(path);
-		EventSource eventSource = new EventSource(webTarget, true);
+		EventSource eventSource = new EventSource(webTarget);
 		return eventSource;
 		//Done
 	}

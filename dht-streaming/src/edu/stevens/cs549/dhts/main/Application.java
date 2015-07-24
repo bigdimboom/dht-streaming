@@ -7,5 +7,6 @@ public class Application extends ResourceConfig {
     public Application() {
         packages("edu.stevens.cs549.dhts.resource");
         // TODO register SseFeature
+        register(SseFeature.class);
     }
 }
